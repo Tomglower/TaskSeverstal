@@ -9,7 +9,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Task3.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
 
     /// <summary>
@@ -32,7 +32,8 @@ namespace Task3.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("GetNotes")]
+        
          public IActionResult GetNotes()
          {
              try
@@ -85,7 +86,8 @@ namespace Task3.Controllers
             }
         }*/
 
-        [HttpPost]
+        [HttpPost("AddNote")]
+
         public IActionResult AddNote([FromBody] Note note)
         {
             try
@@ -112,7 +114,7 @@ namespace Task3.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("ChangeNote/{id}", Name = "ChangeNote")]
         public IActionResult ChangeNote(int id, [FromBody] Note updatedNote)
         {
             try
@@ -152,7 +154,7 @@ namespace Task3.Controllers
         }
 
 
-        [HttpDelete("{id}")]
+        [HttpDelete("DeleteNote/{id}", Name = "DeleteNote")]
         public IActionResult DeleteNote(int id)
         {
             try
@@ -181,7 +183,7 @@ namespace Task3.Controllers
             }
         }
 
-        [HttpGet("{id}", Name = "GetNote")]
+        [HttpGet("GetNote/{id}", Name = "GetNote")]
         public IActionResult GetNote(int id)
         {
             try
