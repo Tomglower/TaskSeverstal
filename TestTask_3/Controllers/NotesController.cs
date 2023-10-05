@@ -1,93 +1,78 @@
 ﻿using log4net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using log4net;
-using System.Data;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Task3.Data;
 using Task3.Models;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Task3.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
     /// <summary>
-    ///   Данный класс представляет из себя класс контроллер,
-    ///   который позволяет обрабатывать все действия с заметками
+    /// Данный класс представляет из себя класс контроллер,
+    /// который позволяет обрабатывать все действия с заметками
     /// </summary>
     public class NotesController : ControllerBase
     {
-        
         private readonly AppDbContext _authContext; // Контекст базы данных
         private readonly IMemoryCache _memoryCache; // Кэширование
         private readonly ILog _logger; // Логгер
 
-        public NotesController(AppDbContext appDbContext,IMemoryCache memoryCache)
+        public NotesController(AppDbContext appDbContext, IMemoryCache memoryCache)
         {
             _authContext = appDbContext;
-            _memoryCache = memoryCache; 
+            _memoryCache = memoryCache;
             _logger = LogManager.GetLogger(typeof(NotesController)); // Инициализация логгера
-
+            Initialize().Wait();
         }
 
+        private async Task Initialize()
+        {
+            if (!await CheckDatabaseConnectionAsync())
+            {
+                // Обработка ошибки подключения к базе данных
+                _logger.Error("Database connection error");
+            }
+        }
+
+        private async Task<bool> CheckDatabaseConnectionAsync() // Обработка подключения к бд
+        {
+            try
+            {
+                await _authContext.Database.OpenConnectionAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         [HttpGet("GetNotes")]
-        
-         public IActionResult GetNotes()
-         {
-             try
-             {
-                // Получить список всех заметок из базы данных и вернуть их как ответ с кодом 200.
-                 var notes = _authContext.Notes.ToList();
-                //Логирование
-                _logger.Info($"GetNotes: withdrawn {notes.Count()} notes"); //Логирование
-                return Ok(notes);
-             }
-             catch (Exception ex)
-             {
-                 _logger.Error("GetNotes Error:" + ex); //Логирование
-                // В случае ошибки вернуть ответ с кодом 500
-                return StatusCode(500, "Internal Server Error");
-             }
-         }
-
-
-        /// <summary>
-        ///   Пример написания метода GetNotes с использованием кеширования. Но кеширование в этом проекте особо и не нужно.
-        /// </summary>
-
-        /*[HttpGet]
         public IActionResult GetNotes()
         {
             try
             {
-                // Получение данных из кеша
-                if (_memoryCache.TryGetValue("notes", out var cachedNotes))
-                {
-                    return Ok(cachedNotes);
-                }
-
-                // Если данные не найдены в кеше, получаем данные из бд 
+                // Получить список всех заметок из базы данных и вернуть их как ответ с кодом 200.
                 var notes = _authContext.Notes.ToList();
-
-                // Помещение данных в кеш
-                _memoryCache.Set("notes", notes, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30) 
-                });
-
+                // Логирование
+                _logger.Info($"GetNotes: withdrawn {notes.Count()} notes"); // Логирование
                 return Ok(notes);
             }
             catch (Exception ex)
             {
+                _logger.Error("GetNotes Error:" + ex); // Логирование
                 // В случае ошибки вернуть ответ с кодом 500
                 return StatusCode(500, "Internal Server Error");
             }
-        }*/
+        }
 
         [HttpPost("AddNote")]
-
         public IActionResult AddNote([FromBody] Note note)
         {
             try
@@ -102,13 +87,13 @@ namespace Task3.Controllers
                 note.CreatedAt = DateTime.Now.ToString();
                 _authContext.Notes.Add(note);
                 _authContext.SaveChanges();
-                _logger.Info($"AddNote: added  one note where id = {note.Id}"); //Логирование
+                _logger.Info($"AddNote: added one note where id = {note.Id}"); // Логирование
                 // Вернуть ответ с кодом 201 и заголовком, указывающим на созданную заметку.
                 return CreatedAtRoute("GetNote", new { id = note.Id }, note);
             }
             catch (Exception ex)
             {
-                _logger.Error("AddNote Error:" + ex); //Логирование
+                _logger.Error("AddNote Error:" + ex); // Логирование
                 // В случае возникновения ошибки вернуть ответ с кодом 500.
                 return StatusCode(500, "Internal Server Error");
             }
@@ -138,7 +123,7 @@ namespace Task3.Controllers
                 existingNote.Title = updatedNote.Title;
                 existingNote.Description = updatedNote.Description;
                 existingNote.UpdatedAt = DateTime.Now.ToString();
-                _logger.Info($"ChangeNote: change  one note where id = {existingNote.Id}"); //Логирование
+                _logger.Info($"ChangeNote: change one note where id = {existingNote.Id}"); // Логирование
                 // Сохранить изменения в базе данных.
                 _authContext.SaveChanges();
 
@@ -147,12 +132,11 @@ namespace Task3.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error("ChangeNote Error:" + ex); //Логирование
+                _logger.Error("ChangeNote Error:" + ex); // Логирование
                 // В случае возникновения ошибки вернуть ответ с кодом 500 и сообщением об ошибке.
                 return StatusCode(500, "Internal Server Error: " + ex.Message);
             }
         }
-
 
         [HttpDelete("DeleteNote/{id}", Name = "DeleteNote")]
         public IActionResult DeleteNote(int id)
@@ -171,13 +155,13 @@ namespace Task3.Controllers
                 // Удалить существующую заметку из базы данных и сохранить изменения.
                 _authContext.Notes.Remove(existingNote);
                 _authContext.SaveChanges();
-                _logger.Info($"DeleteNote: delete  one note where id = {existingNote.Id}"); //Логирование
-                // Вернуть ответ с кодом 204 ,без возвращения данных.
+                _logger.Info($"DeleteNote: delete one note where id = {existingNote.Id}"); // Логирование
+                // Вернуть ответ с кодом 204, без возвращения данных.
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.Error("DeleteNote Error:" + ex); //Логирование
+                _logger.Error("DeleteNote Error:" + ex); // Логирование
                 // В случае возникновения ошибки вернуть ответ с кодом 500.
                 return StatusCode(500, "Internal Server Error");
             }
@@ -201,8 +185,8 @@ namespace Task3.Controllers
                 return Ok(note);
             }
             catch (Exception ex)
-            { 
-                _logger.Error("GetNote Error:" + ex); //Логирование
+            {
+                _logger.Error("GetNote Error:" + ex); // Логирование
                 // В случае возникновения ошибки вернуть ответ с кодом 500.
                 return StatusCode(500, "Internal Server Error");
             }

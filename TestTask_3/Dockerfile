@@ -1,17 +1,19 @@
-# Используйте образ с .NET 7.0 SDK
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /app
+EXPOSE 80
 
-# Копирование проекта и восстановление зависимостей
-COPY *.csproj ./
-RUN dotnet restore
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /src
+COPY Task3.csproj Task3.csproj
+RUN dotnet restore Task3.csproj
+COPY . .
+WORKDIR /src
+RUN dotnet build Task3.csproj -c Release -o /app
 
-# Копирование остальных файлов и сборка приложения
-COPY . ./
-RUN dotnet publish -c Release -o out
+FROM build AS publish
+RUN dotnet publish Task3.csproj -c Release -o /app
 
-# Этап для запуска приложения
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
 WORKDIR /app
-COPY --from=build /app/out ./
+COPY --from=publish /app .
 ENTRYPOINT ["dotnet", "Task3.dll"]

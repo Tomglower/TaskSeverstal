@@ -29,7 +29,7 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine("Произошла ошибка при миграции базы данных.");
+    Console.WriteLine("Произошла ошибка при миграции базы данных: " + ex);
 }
 try
 {
@@ -42,12 +42,16 @@ catch (Exception ex)
     Console.WriteLine("Error configuring log4net: " + ex.Message);
 }
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction() )
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpsRedirection();
+app.UseCors(builder => builder
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
 
 app.UseAuthorization();
 
