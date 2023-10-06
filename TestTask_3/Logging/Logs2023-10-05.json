@@ -1,7 +1,0 @@
-{"level":"INFO","logger":"Task3.Controllers.NotesController","message":"AddNote: added  one note where id = 11"}
-{"level":"INFO","logger":"Task3.Controllers.NotesController","message":"GetNotes: withdrawn 9 notes"}
-{"level":"INFO","logger":"Task3.Controllers.NotesController","message":"AddNote: added  one note where id = 12"}
-{"level":"INFO","logger":"Task3.Controllers.NotesController","message":"ChangeNote: change  one note where id = 12"}
-{"level":"INFO","logger":"Task3.Controllers.NotesController","message":"GetNotes: withdrawn 10 notes"}
-{"level":"INFO","logger":"Task3.Controllers.NotesController","message":"DeleteNote: delete  one note where id = 12"}
-{"level":"INFO","logger":"Task3.Controllers.NotesController","message":"GetNotes: withdrawn 9 notes"}

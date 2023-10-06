@@ -85,6 +85,8 @@ namespace Task3.Controllers
 
                 // Добавить новую заметку в базу данных и сохранить изменения.
                 note.CreatedAt = DateTime.Now.ToString();
+                note.UpdatedAt = DateTime.Now.ToString();
+                note.UpdatedAt = DateTime.Now.ToString();
                 _authContext.Notes.Add(note);
                 _authContext.SaveChanges();
                 _logger.Info($"AddNote: added one note where id = {note.Id}"); // Логирование
@@ -123,9 +125,9 @@ namespace Task3.Controllers
                 existingNote.Title = updatedNote.Title;
                 existingNote.Description = updatedNote.Description;
                 existingNote.UpdatedAt = DateTime.Now.ToString();
-                _logger.Info($"ChangeNote: change one note where id = {existingNote.Id}"); // Логирование
                 // Сохранить изменения в базе данных.
                 _authContext.SaveChanges();
+                _logger.Info($"ChangeNote: change one note where id = {existingNote.Id}"); // Логирование
 
                 // Вернуть ответ с кодом 204, без возвращения данных.
                 return NoContent();
@@ -178,10 +180,13 @@ namespace Task3.Controllers
                 if (note == null)
                 {
                     // Если заметка не найдена, вернуть ответ с кодом 404.
+                    // Если заметка не найдена, вернуть ответ с кодом 404.
                     return NotFound();
                 }
 
                 // Вернуть найденную заметку как ответ с кодом 200.
+                _logger.Info($"GetNote: withdrawn one notes where id = {note.Id}"); // Логирование
+
                 return Ok(note);
             }
             catch (Exception ex)
